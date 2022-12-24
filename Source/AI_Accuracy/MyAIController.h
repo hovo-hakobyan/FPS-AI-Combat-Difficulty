@@ -24,22 +24,30 @@ public:
 	virtual void OnPossess(APawn* const pawn) override;
 
 	class UBlackboardComponent* GetBB() const;
+
 	
 protected:
+
+	//Used to implement senses for an actor
+	UPROPERTY(VisibleAnywhere)
+		UAIPerceptionComponent* pAIPerceptionComponent;
+
 private:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-		class UBehaviorTreeComponent* pBehaviorTreeComponent;
+	class UBehaviorTreeComponent* pBehaviorTreeComponent;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-		class UBehaviorTree* pBehaviorTree;
+	class UBehaviorTree* pBehaviorTree;
 
 	class UBlackboardComponent* pBlackboard;
 
+	//Sight sense for AI
 	class UAISenseConfig_Sight* pSightConfig;
 
-	UFUNCTION()
-		void OnTargetDetected(AActor* actor, const FAIStimulus stimulus);
 
-	void SetupPerceptionSysem();
+	UFUNCTION()
+	void OnPerception(AActor* actor,const FAIStimulus stimulus);
+
+	void SetupPerceptionSystem();
 };
 

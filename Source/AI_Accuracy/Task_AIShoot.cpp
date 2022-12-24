@@ -21,7 +21,7 @@ EBTNodeResult::Type UTask_AIShoot::ExecuteTask(UBehaviorTreeComponent& ownerComp
 {
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Shooting"));
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("sdfafs"));
 	}
 
 

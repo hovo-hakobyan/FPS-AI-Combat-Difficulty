@@ -17,6 +17,7 @@
 #include "AI_AccuracyCharacter.h"
 
 
+
 AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
 {
 	//Look for behavior tree in path
@@ -31,7 +32,7 @@ AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
 	pBehaviorTreeComponent = objectInitializer.CreateDefaultSubobject<UBehaviorTreeComponent>(this, TEXT("BehaviorComponent"));
 	pBlackboard = objectInitializer.CreateDefaultSubobject<UBlackboardComponent>(this, TEXT("BlackboardComponent"));
 
-	SetupPerceptionSysem();
+	SetupPerceptionSystem();
 	
 }
 
@@ -55,6 +56,8 @@ void AMyAIController::OnPossess(APawn* const pawn)
 		//Sets which BB the BT should use
 		pBlackboard->InitializeBlackboard(*pBehaviorTree->BlackboardAsset);
 	}
+
+
 }
 
 UBlackboardComponent* AMyAIController::GetBB() const
@@ -62,27 +65,32 @@ UBlackboardComponent* AMyAIController::GetBB() const
 	return pBlackboard;
 }
 
-void AMyAIController::OnTargetDetected(AActor* actor,const FAIStimulus stimulus)
+
+void AMyAIController::OnPerception(AActor* actor,const FAIStimulus stimulus)
 {
+	const auto character = Cast<AAI_AccuracyCharacter>(actor);
+
 	//actor must have UAIPerceptionSimuliSourceComponent in order to be detected
-	if (const auto character = Cast<AAI_AccuracyCharacter>(actor) )
+	if (character)
 	{
 		pBlackboard->SetValueAsBool(bb_keys::canSeePlayer, stimulus.WasSuccessfullySensed());
+		SetFocus(stimulus.WasSuccessfullySensed() ? character : nullptr);
 	}
 
+	
 }
 
-void AMyAIController::SetupPerceptionSysem()
+void AMyAIController::SetupPerceptionSystem()
 {
 	//create and initialize sight config object
 	pSightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
-	SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception config")));
+	pAIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
 
 	//Player withing this radius == detected
-	pSightConfig->SightRadius = 500.0f;
+	pSightConfig->SightRadius = 600.0f;
 
 	//Radius to leave sight
-	pSightConfig->LoseSightRadius = pSightConfig->SightRadius + 50.f;
+	pSightConfig->LoseSightRadius = pSightConfig->SightRadius + 200.f;
 
 	//FOV
 	pSightConfig->PeripheralVisionAngleDegrees = 90.f;
@@ -90,19 +98,17 @@ void AMyAIController::SetupPerceptionSysem()
 	//Time (in seconds) to forget last seen loc
 	pSightConfig->SetMaxAge(5.f);
 
-	pSightConfig->AutoSuccessRangeFromLastSeenLocation = 900.f;
 	pSightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	pSightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 	pSightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
+	pAIPerceptionComponent->ConfigureSense(*pSightConfig);
 	//add sight config component to perception component
-	GetPerceptionComponent()->SetDominantSense(*pSightConfig->GetSenseImplementation());
+	pAIPerceptionComponent->SetDominantSense(pSightConfig->GetSenseImplementation());
+
 
 	//When something is perceieved, call the function
-	GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnTargetDetected);
-
-	GetPerceptionComponent()->ConfigureSense(*pSightConfig);
-
+	pAIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnPerception);
 }
 
 
