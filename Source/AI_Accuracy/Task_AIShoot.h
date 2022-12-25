@@ -23,6 +23,6 @@ public:
 protected:
 
 private:
-
+	class AEnemy* pCharacter = nullptr;
 
 };

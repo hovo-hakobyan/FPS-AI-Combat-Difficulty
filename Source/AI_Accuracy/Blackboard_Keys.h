@@ -5,6 +5,6 @@
 
 namespace bb_keys
 {
-	const TCHAR* const shootLocation = TEXT("ShootLocation");
+	const TCHAR* const target = TEXT("Target");
 	const TCHAR* const canSeePlayer = TEXT("CanSeePlayer");
 }

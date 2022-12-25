@@ -20,14 +20,19 @@ EBTNodeResult::Type UTask_FindPlayerLocation::ExecuteTask(UBehaviorTreeComponent
 	//Get player character
 	ACharacter* const pPlayer = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
 
+	
+
+	if (!pPlayer)
+		return EBTNodeResult::Failed;
+
 	//Get AI controller
 	const auto controller = Cast<AMyAIController>(ownerComponent.GetAIOwner());
 
-	//GetPlayerLocation
-	const FVector playerLoc = pPlayer->GetActorLocation();
+	if (!controller)
+		return EBTNodeResult::Failed;
 
 	//Change data in BB
-	controller->GetBB()->SetValueAsVector(bb_keys::shootLocation, playerLoc);
+	controller->GetBB()->SetValueAsObject(bb_keys::target, pPlayer);
 
 	//Finish task
 	FinishLatentTask(ownerComponent, EBTNodeResult::Succeeded);

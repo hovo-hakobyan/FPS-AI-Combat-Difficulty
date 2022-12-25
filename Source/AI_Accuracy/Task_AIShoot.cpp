@@ -6,7 +6,8 @@
 #include "MyAIController.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "Blackboard_Keys.h"
-
+#include "Enemy.h"
+#include "AI_AccuracyCharacter.h"
 
 
 
@@ -19,11 +20,29 @@ UTask_AIShoot::UTask_AIShoot(const FObjectInitializer& objectInitializer)
 
 EBTNodeResult::Type UTask_AIShoot::ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* pNodeMemory)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("sdfafs"));
-	}
+	AMyAIController* pAIController = Cast<AMyAIController>(ownerComp.GetAIOwner());
 
+
+	if (!pAIController)
+		return EBTNodeResult::Failed;
+
+	pCharacter = Cast<AEnemy>(pAIController->GetPawn());
+
+	if (!pCharacter)
+		return EBTNodeResult::Failed;
+
+	AAI_AccuracyCharacter* pTarget = Cast<AAI_AccuracyCharacter>(pAIController->GetBB()->GetValueAsObject(bb_keys::target));
+
+	if (!pTarget)
+		return EBTNodeResult::Failed;
+
+	AEnemy* pShooter = Cast<AEnemy>(pAIController->GetPawn());
+
+	
+	if (!pShooter)
+		return EBTNodeResult::Failed;
+
+	pShooter->Shoot();
 
 	//Finish task with success
 	FinishLatentTask(ownerComp, EBTNodeResult::Succeeded);

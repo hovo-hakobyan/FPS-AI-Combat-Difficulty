@@ -2,6 +2,7 @@
 
 #include "AI_AccuracyCharacter.h"
 #include "AI_AccuracyProjectile.h"
+#include "MyProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -49,7 +50,7 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
 	FP_Gun->SetupAttachment(RootComponent);
 
 	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
@@ -150,6 +151,7 @@ void AAI_AccuracyCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 void AAI_AccuracyCharacter::OnFire()
 {
+	
 	// try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{
