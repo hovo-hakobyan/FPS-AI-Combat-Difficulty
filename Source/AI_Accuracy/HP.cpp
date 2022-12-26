@@ -8,24 +8,24 @@ UHP::UHP(const FObjectInitializer& ObjectInitializer):
 	Super(ObjectInitializer)
 {
 	max = 100;
-	current = max;
+	CurrentHealth = max;
 
 }
 
 void UHP::TakeDamage(int amount)
 {
 
-	current -= amount;
+	CurrentHealth -= amount;
 
-	if (current < 0)
+	if (CurrentHealth < 0)
 	{
-		current = 0;
+		CurrentHealth = 0;
 	}
 }
 
 bool UHP::IsValid()
 {
-	return current != 0;
+	return CurrentHealth != 0;
 }
 
 

@@ -16,12 +16,15 @@ public:
 	// Sets default values for this component's properties
 	UHP(const FObjectInitializer& ObjectInitializer);
 
-	int Get() const { return current; } 
+	int Get() const { return CurrentHealth; }
 
 	void TakeDamage(int amount);
 	bool IsValid();
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	int CurrentHealth;
+
 private:
-	int current;
+	
 	int max;
 };

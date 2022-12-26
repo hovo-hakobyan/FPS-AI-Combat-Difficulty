@@ -87,7 +87,7 @@ void AMyAIController::SetupPerceptionSystem()
 	pAIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
 
 	//Player withing this radius == detected
-	pSightConfig->SightRadius = 600.0f;
+	pSightConfig->SightRadius = 2000.0f;
 
 	//Radius to leave sight
 	pSightConfig->LoseSightRadius = pSightConfig->SightRadius + 200.f;

@@ -21,6 +21,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 //////////////////////////////////////////////////////////////////////////
 // AAI_AccuracyCharacter
 
+
+
 AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 {
 	// Set size for collision capsule
@@ -111,9 +113,8 @@ void AAI_AccuracyCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
-
-
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -198,6 +199,9 @@ void AAI_AccuracyCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+
+	
+
 }
 
 void AAI_AccuracyCharacter::OnResetVR()
@@ -288,5 +292,12 @@ void AAI_AccuracyCharacter::SetupStimulus()
 	pStimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("stimulus"));
 	pStimulus->RegisterForSense(TSubclassOf<UAISense_Sight>());
 	pStimulus->RegisterWithPerceptionSystem();
+
+}
+
+
+void AAI_AccuracyCharacter::PlayBloodAnimation_Implementation()
+{
+	//C++ code goes here 
 
 }

@@ -96,7 +96,9 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	
+	UFUNCTION(BlueprintNativeEvent)
+	void PlayBloodAnimation();
+	void PlayBloodAnimation_Implementation();
 
 protected:
 	virtual void BeginPlay();

@@ -51,13 +51,7 @@ void AMyProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		{
 			int damageAmount{ 10};
 			pChar->Health->TakeDamage(damageAmount);
-			FString debugMessage = TEXT("Current HP: ");
-			debugMessage.AppendInt(pChar->Health->Get());
-			if (GEngine)
-			{
-				pChar->Health->Get();
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, debugMessage);
-			}
+			pChar->PlayBloodAnimation();
 		}
 	}
 		

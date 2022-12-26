@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Enemy.generated.h"
 
+
 UCLASS()
 class AI_ACCURACY_API AEnemy : public ACharacter
 {
@@ -23,6 +24,9 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* MuzzleLocation;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USceneComponent* ParticleSpawn;
+
 	/** Gun muzzle's offset from the characters location */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector GunOffset;
@@ -35,9 +39,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+	class UParticleSystemComponent* PS_GunFireComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particle")
+	UParticleSystem* PS_GunFire;
+
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	TSubclassOf<class AMyProjectile> ProjectileClass;
+
 
 protected:
 	// Called when the game starts or when spawned

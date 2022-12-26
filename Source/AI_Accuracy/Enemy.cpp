@@ -5,6 +5,8 @@
 #include "MyProjectile.h"
 #include "AI_AccuracyProjectile.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Particles/ParticleSystem.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -24,11 +26,15 @@ AEnemy::AEnemy()
 	MuzzleLocation->SetupAttachment(GunMesh);
 	MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
+	ParticleSpawn = CreateDefaultSubobject<USceneComponent>(TEXT("ParticleSpawnLocation"));
+	ParticleSpawn->SetupAttachment(GunMesh);
+
+
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
-	
-	
+	PS_GunFireComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WeaponParticle"));
+	PS_GunFireComp->SetupAttachment(GunMesh);
 }
 
 // Called when the game starts or when spawned
@@ -68,13 +74,13 @@ void AEnemy::Shoot(bool shouldHit)
 	}
 
 	// try and play the sound if specified
-	if (FireSound != nullptr)
+	if (FireSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
 
 	//Play firing montage
-	if (FireAnimation != nullptr)
+	if (FireAnimation)
 	{
 
 		// Get the animation object for the arms mesh
@@ -87,6 +93,12 @@ void AEnemy::Shoot(bool shouldHit)
 					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Failed to play"));
 			}
 		}
+	}
+
+	//Spawn particle
+	if (PS_GunFireComp)
+	{
+		PS_GunFireComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), PS_GunFire, ParticleSpawn->GetComponentLocation(),FRotator::ZeroRotator,FVector(0.005f));
 	}
 }
 

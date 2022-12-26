@@ -14,4 +14,6 @@ AAI_AccuracyGameMode::AAI_AccuracyGameMode()
 
 	// use our custom HUD class
 	HUDClass = AAI_AccuracyHUD::StaticClass();
+
+
 }
