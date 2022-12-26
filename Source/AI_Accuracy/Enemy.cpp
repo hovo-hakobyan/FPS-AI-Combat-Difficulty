@@ -4,6 +4,7 @@
 #include "Enemy.h"
 #include "MyProjectile.h"
 #include "AI_AccuracyProjectile.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -25,6 +26,9 @@ AEnemy::AEnemy()
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
+
+	
+	
 }
 
 // Called when the game starts or when spawned
@@ -39,7 +43,7 @@ void AEnemy::BeginPlay()
 	
 }
 
-void AEnemy::Shoot()
+void AEnemy::Shoot(bool shouldHit)
 {
 	
 	// try and fire a projectile
@@ -48,7 +52,8 @@ void AEnemy::Shoot()
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
 		{
-			const FRotator SpawnRotation = GetControlRotation();
+			const FRotator randomRotation = shouldHit ? FRotator{ 0.f,0.f,0.f } : FRotator{ 0.f,10.f,0.f };
+			const FRotator SpawnRotation = GetControlRotation() + randomRotation;
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 			const FVector SpawnLocation = ((MuzzleLocation != nullptr) ? MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
@@ -59,9 +64,13 @@ void AEnemy::Shoot()
 			// spawn the projectile at the muzzle
 			World->SpawnActor<AMyProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 			
-			
-
 		}
+	}
+
+	// try and play the sound if specified
+	if (FireSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
 
 	//Play firing montage

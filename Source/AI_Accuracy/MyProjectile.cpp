@@ -5,6 +5,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "AI_AccuracyCharacter.h"
+#include "HP.h"
 
 
 // Sets default values
@@ -29,13 +30,13 @@ AMyProjectile::AMyProjectile()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 6000.f;
+	ProjectileMovement->MaxSpeed = 6000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
 
 	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
+	InitialLifeSpan = 0.0f;
 
 }
 
@@ -43,10 +44,22 @@ void AMyProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 {
 
 	AAI_AccuracyCharacter* pChar = Cast<AAI_AccuracyCharacter>(OtherActor);
+
 	if (pChar)
 	{
-		
+		if (pChar->Health)
+		{
+			int damageAmount{ 10};
+			pChar->Health->TakeDamage(damageAmount);
+			FString debugMessage = TEXT("Current HP: ");
+			debugMessage.AppendInt(pChar->Health->Get());
+			if (GEngine)
+			{
+				pChar->Health->Get();
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, debugMessage);
+			}
+		}
 	}
-
+		
 	Destroy();
 }

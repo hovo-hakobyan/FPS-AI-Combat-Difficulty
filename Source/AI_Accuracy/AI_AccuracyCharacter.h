@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AI_AccuracyCharacter.generated.h"
 
+
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
@@ -14,14 +15,16 @@ class UMotionControllerComponent;
 class UAnimMontage;
 class USoundBase;
 
+
+
 UCLASS(config=Game)
 class AAI_AccuracyCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-		/** Pawn mesh: 1st person view (arms; seen only by self) */
-		UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		USkeletalMeshComponent* Mesh1P;
+	/** Pawn mesh: 1st person view (arms; seen only by self) */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USkeletalMeshComponent* Mesh1P;
 
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
@@ -50,6 +53,8 @@ class AAI_AccuracyCharacter : public ACharacter
 	/** Motion controller (left hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		UMotionControllerComponent* L_MotionController;
+
+	
 
 public:
 	AAI_AccuracyCharacter();
@@ -82,10 +87,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		uint8 bUsingMotionControllers : 1;
 
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HP)
+	class UHP* Health;
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	
 
 protected:
 	virtual void BeginPlay();
