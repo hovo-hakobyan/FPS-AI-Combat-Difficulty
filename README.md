@@ -23,3 +23,20 @@ To have believable behavior we need to solve two problems:
 * Which agents should hit and which ones should miss? 
 * What is the delay between each time the player should get hit?
 ### Token system
+In order to determine which agent gets to hit their shot, we will use a logical token. By default, all the agents will miss their shots, except the one with the token. The latter will hit their shot and release the token, which will be distributed again.
+
+In our logic we would have:
+
+* Code that determines which agent is the most relevant to get the token 
+* Code that calculates when this agent should get the token (in seconds), thus when should the bullet hit the player (dynamic timer)
+
+
+To simplify further explanation I will use a single AI. In this case we can ignore the logic that will determine which AI is the most relevant and we can focus on the delay calculation for a single AI. I will show how to deal with multiple AI agents in the upcoming sections.
+## Dealing with single AI
+
+### Delay between hits
+How can we calculate the delay between hits, a.k.a when should an agent get the token? If we use a constant delay between each hit, the player might find out that the shots hit them every x second, which is not believable behavior. We want to make this delay dynamic, so we'll use a formula to calculate the final delay.
+
+`finalDelay = baseDelay * multipliers`
+
+
