@@ -19,7 +19,9 @@ public:
 	int Get() const { return CurrentHealth; }
 
 	void TakeDamage(int amount);
-	bool IsValid();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsValidNum();
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int CurrentHealth;

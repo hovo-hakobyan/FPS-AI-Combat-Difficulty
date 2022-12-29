@@ -48,7 +48,7 @@ public:
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	TSubclassOf<class AMyProjectile> ProjectileClass;
-
+	
 
 protected:
 	// Called when the game starts or when spawned

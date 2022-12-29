@@ -88,17 +88,21 @@ public:
 		uint8 bUsingMotionControllers : 1;
 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HP)
-	class UHP* Health;
+	UPROPERTY(Instanced, BlueprintReadOnly, Category = "Health")
+	class UHP* HealthComponent;
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UHP* GetHealthComponent()const { return HealthComponent; }
+
 	UFUNCTION(BlueprintNativeEvent)
 	void PlayBloodAnimation();
 	void PlayBloodAnimation_Implementation();
+
+
 
 protected:
 	virtual void BeginPlay();

@@ -91,7 +91,8 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 
 	SetupStimulus();
 
-	Health = CreateDefaultSubobject<UHP>(TEXT("Health"));
+	HealthComponent = CreateDefaultSubobject<UHP>(TEXT("Player health"));
+
 }
 
 void AAI_AccuracyCharacter::BeginPlay()
@@ -113,6 +114,7 @@ void AAI_AccuracyCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
 }
 
 
@@ -301,3 +303,4 @@ void AAI_AccuracyCharacter::PlayBloodAnimation_Implementation()
 	//C++ code goes here 
 
 }
+
