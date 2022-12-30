@@ -14,6 +14,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "GameFramework/Character.h"
+#include "RuleManager.h"
 #include "AI_AccuracyCharacter.h"
 
 
@@ -34,6 +35,7 @@ AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
 
 	SetupPerceptionSystem();
 	
+	RuleManager = CreateDefaultSubobject<URuleManager>(TEXT("AI Rule Manager"));
 }
 
 void AMyAIController::BeginPlay()
@@ -57,7 +59,7 @@ void AMyAIController::OnPossess(APawn* const pawn)
 		pBlackboard->InitializeBlackboard(*pBehaviorTree->BlackboardAsset);
 	}
 
-
+	
 }
 
 UBlackboardComponent* AMyAIController::GetBB() const
@@ -76,7 +78,7 @@ void AMyAIController::OnPerception(AActor* actor,const FAIStimulus stimulus)
 		pBlackboard->SetValueAsBool(bb_keys::canSeePlayer, stimulus.WasSuccessfullySensed());
 		SetFocus(stimulus.WasSuccessfullySensed() ? character : nullptr);
 	}
-
+	
 	
 }
 

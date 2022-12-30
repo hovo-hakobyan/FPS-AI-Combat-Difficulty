@@ -26,6 +26,7 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int CurrentHealth;
 
+
 private:
 	
 	int max;

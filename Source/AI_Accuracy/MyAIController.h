@@ -44,6 +44,8 @@ private:
 	//Sight sense for AI
 	class UAISenseConfig_Sight* pSightConfig;
 
+	class URuleManager* RuleManager;
+
 
 	UFUNCTION()
 	void OnPerception(AActor* actor,const FAIStimulus stimulus);

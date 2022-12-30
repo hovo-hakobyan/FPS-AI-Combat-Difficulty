@@ -87,8 +87,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		uint8 bUsingMotionControllers : 1;
 
-	
-	UPROPERTY(Instanced, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	class UHP* HealthComponent;
 
 	/** Returns Mesh1P subobject **/

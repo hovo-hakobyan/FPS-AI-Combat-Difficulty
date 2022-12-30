@@ -92,6 +92,7 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 	SetupStimulus();
 
 	HealthComponent = CreateDefaultSubobject<UHP>(TEXT("Player health"));
+	this->AddOwnedComponent(HealthComponent);
 
 }
 

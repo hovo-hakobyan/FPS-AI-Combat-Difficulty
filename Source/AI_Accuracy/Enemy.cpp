@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Particles/ParticleSystem.h"
 
+
 // Sets default values
 AEnemy::AEnemy()
 {
@@ -35,6 +36,9 @@ AEnemy::AEnemy()
 
 	PS_GunFireComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WeaponParticle"));
 	PS_GunFireComp->SetupAttachment(GunMesh);
+
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -46,6 +50,7 @@ void AEnemy::BeginPlay()
 
 	GunMesh->SetHiddenInGame(false, false);
 	GetMesh()->SetHiddenInGame(false, false);
+	
 	
 }
 

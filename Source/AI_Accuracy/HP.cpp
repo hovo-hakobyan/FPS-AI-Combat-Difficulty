@@ -10,7 +10,6 @@ UHP::UHP(const FObjectInitializer& ObjectInitializer):
 	max = 100;
 	CurrentHealth = max;
 
-	UE_LOG(LogTemp, Warning, TEXT("Here"));
 }
 
 void UHP::TakeDamage(int amount)
