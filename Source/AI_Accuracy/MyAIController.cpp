@@ -47,6 +47,10 @@ void AMyAIController::BeginPlay()
 	RunBehaviorTree(pBehaviorTree);
 	pBehaviorTreeComponent->StartTree(*pBehaviorTree);
 
+	if (RuleManager)
+	{
+		RuleManager->GetMultiplier(*RuleManager->GetDistanceRuleTable(), 40.f);
+	}
 }
 
 void AMyAIController::OnPossess(APawn* const pawn)

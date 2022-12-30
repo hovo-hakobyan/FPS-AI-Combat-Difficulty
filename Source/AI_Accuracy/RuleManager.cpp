@@ -14,10 +14,43 @@ URuleManager::URuleManager()
 		DistanceRuleTable = DistanceTable.Object;
 	}
 
-	if (DistanceRuleTable)
-	{
-		const FString context{ TEXT("Distance Context") };
-		FValueRule* firstMultiplier = DistanceRuleTable->FindRow<FValueRule>(FName(TEXT("First")), context, true);
+}
 
+float URuleManager::GetMultiplier(const UDataTable& dataTable, float value)
+{
+	const FString context{ TEXT("Distance Rule Array Context") };
+	TArray<FValueRule*> outRowArr;
+	DistanceRuleTable->GetAllRows(context, outRowArr);
+
+	//To be used in multiplier calculation
+	float lowMultiplier{INFINITY};
+	float lowValue{ INFINITY };
+	float highValue{ -INFINITY };
+
+
+	for (int i = 0; i < outRowArr.Num(); ++i)
+	{
+		//Finds the lowest multiplier in the Data Table
+		if (outRowArr[i]->Multiplier < lowMultiplier)
+		{
+			lowMultiplier = outRowArr[i]->Multiplier;
+		}
+
+		if (outRowArr[i]->Value < lowValue)
+		{
+			lowValue = outRowArr[i]->Value;
+		}
+
+		if (outRowArr[i]->Value > highValue)
+		{
+			highValue = outRowArr[i]->Value;
+		}
 	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("Lowest value is: %f"), lowValue);
+	//UE_LOG(LogTemp, Warning, TEXT("Highest value is: %f"), highValue);
+
+	float multiplier{ lowMultiplier + (lowMultiplier / (highValue - lowValue)) * value };
+	UE_LOG(LogTemp, Warning, TEXT("Result value is: %f"), multiplier);
+	return multiplier;
 }

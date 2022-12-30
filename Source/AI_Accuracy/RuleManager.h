@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "RuleManager.generated.h"
 
+class UDataTable;
 
 UCLASS()
 class AI_ACCURACY_API URuleManager : public UObject
@@ -16,7 +17,11 @@ public:
 	URuleManager();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UDataTable* DistanceRuleTable;
+	UDataTable* DistanceRuleTable;
+
+	float GetMultiplier(const UDataTable& dataTable, float value);
+
+	UDataTable* GetDistanceRuleTable() { return DistanceRuleTable; }
 
 private:
 
