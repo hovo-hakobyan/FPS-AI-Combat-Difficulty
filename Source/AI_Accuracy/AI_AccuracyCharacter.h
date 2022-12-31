@@ -14,7 +14,7 @@ class UCameraComponent;
 class UMotionControllerComponent;
 class UAnimMontage;
 class USoundBase;
-
+class UTexture;
 
 
 UCLASS(config=Game)
@@ -90,6 +90,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	class UHP* HealthComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		bool isCrouching;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
+	UTexture* crouchTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
+	UTexture* standTexture;
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
@@ -129,6 +137,10 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
+
+	void StartCrouch();
+
+	void StopCrouch();
 
 	struct TouchData
 	{

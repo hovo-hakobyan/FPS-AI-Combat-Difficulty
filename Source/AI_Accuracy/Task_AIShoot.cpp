@@ -42,7 +42,7 @@ EBTNodeResult::Type UTask_AIShoot::ExecuteTask(UBehaviorTreeComponent& ownerComp
 	if (!pShooter)
 		return EBTNodeResult::Failed;
 
-	pShooter->Shoot(true);
+	pShooter->Shoot();
 
 	//Finish task with success
 	FinishLatentTask(ownerComp, EBTNodeResult::Succeeded);

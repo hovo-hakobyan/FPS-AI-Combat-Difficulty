@@ -54,7 +54,7 @@ void AEnemy::BeginPlay()
 	
 }
 
-void AEnemy::Shoot(bool shouldHit)
+void AEnemy::Shoot()
 {
 	
 	// try and fire a projectile
@@ -65,6 +65,7 @@ void AEnemy::Shoot(bool shouldHit)
 		{
 			const FRotator randomRotation = shouldHit ? FRotator{ 0.f,0.f,0.f } : FRotator{ 0.f,10.f,0.f };
 			const FRotator SpawnRotation = GetControlRotation() + randomRotation;
+
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 			const FVector SpawnLocation = ((MuzzleLocation != nullptr) ? MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
@@ -75,6 +76,11 @@ void AEnemy::Shoot(bool shouldHit)
 			// spawn the projectile at the muzzle
 			World->SpawnActor<AMyProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 			
+			//If we hit the last shot, we reset this boolean
+			if (shouldHit)
+			{
+				shouldHit = false;
+			}
 		}
 	}
 
@@ -111,6 +117,20 @@ void AEnemy::Shoot(bool shouldHit)
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!canShoot)
+	{
+		currentDelay = 0.f;
+		return;
+	}
+
+	currentDelay += DeltaTime;
+
+	if (currentDelay >= finalDelay)
+	{
+		shouldHit = true;
+		currentDelay = 0.f;	
+	}
 
 }
 

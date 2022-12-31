@@ -30,7 +30,7 @@ protected:
 
 	//Used to implement senses for an actor
 	UPROPERTY(VisibleAnywhere)
-		UAIPerceptionComponent* pAIPerceptionComponent;
+		UAIPerceptionComponent* AIPerceptionComponent;
 
 private:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
@@ -42,9 +42,11 @@ private:
 	class UBlackboardComponent* pBlackboard;
 
 	//Sight sense for AI
-	class UAISenseConfig_Sight* pSightConfig;
+	class UAISenseConfig_Sight* SightConfig;
 
+	//Rules and multipliers
 	class URuleManager* RuleManager;
+	float baseDelay = 0.5f;
 
 
 	UFUNCTION()

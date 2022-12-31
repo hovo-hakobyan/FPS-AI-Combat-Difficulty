@@ -21,7 +21,16 @@ public:
 	virtual void Init() override;
 
 	UFUNCTION(BlueprintCallable)
-	void ShowWidget();
+	void ShowGameOverWidget();
+
+protected:
+	/*UPROPERTY()
+	class UUserWidget* StanceWidget;*/
+
 private:
 	TSubclassOf<class UUserWidget> GameOverWidgetClass;
+
+	//TSubclassOf<class UUserWidget> StanceWidgetClass;
+
+	
 };

@@ -15,6 +15,8 @@
 #include "Perception/AISense_Sight.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "HP.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/Texture.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -27,7 +29,6 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -94,6 +95,10 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 	HealthComponent = CreateDefaultSubobject<UHP>(TEXT("Player health"));
 	this->AddOwnedComponent(HealthComponent);
 
+	//Icons for Stance UI
+	crouchTexture = CreateDefaultSubobject<UTexture>(TEXT("Crouch texture"));
+	standTexture = CreateDefaultSubobject<UTexture>(TEXT("Stand texture"));
+
 }
 
 void AAI_AccuracyCharacter::BeginPlay()
@@ -115,6 +120,7 @@ void AAI_AccuracyCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
 
 }
 
@@ -150,6 +156,10 @@ void AAI_AccuracyCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAxis("TurnRate", this, &AAI_AccuracyCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AAI_AccuracyCharacter::LookUpAtRate);
+
+	//Bind crouch
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AAI_AccuracyCharacter::StartCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AAI_AccuracyCharacter::StopCrouch);
 
 	//Exit logic
 	PlayerInputComponent->BindAction("ExitGame", IE_Pressed, this, &AAI_AccuracyCharacter::ExitGame);
@@ -269,6 +279,20 @@ void AAI_AccuracyCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
+void AAI_AccuracyCharacter::StartCrouch()
+{
+	GetCapsuleComponent()->SetCapsuleHalfHeight(48.0f);
+	ACharacter::Crouch();
+	isCrouching = true;
+}
+
+void AAI_AccuracyCharacter::StopCrouch()
+{
+	GetCapsuleComponent()->SetCapsuleHalfHeight(96.0f);
+	ACharacter::UnCrouch();
+	isCrouching = false;
+}
+
 bool AAI_AccuracyCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
 {
 	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
@@ -297,6 +321,7 @@ void AAI_AccuracyCharacter::SetupStimulus()
 	pStimulus->RegisterWithPerceptionSystem();
 
 }
+
 
 
 void AAI_AccuracyCharacter::PlayBloodAnimation_Implementation()

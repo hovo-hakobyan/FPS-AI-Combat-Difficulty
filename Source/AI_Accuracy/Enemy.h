@@ -63,6 +63,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void Shoot(bool shouldHit);
+	void Shoot();
+
+	void SetFinalDelay(float delay) { finalDelay = delay; }
+	void SetCanShoot(bool shoot) { canShoot = shoot; }
+	bool GetCanShoot()const { return canShoot; }
+
+private:
+	float finalDelay;
+	float currentDelay;
+	bool canShoot;
+	bool shouldHit;
 
 };

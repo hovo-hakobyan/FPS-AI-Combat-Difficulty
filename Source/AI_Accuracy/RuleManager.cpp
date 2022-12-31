@@ -5,52 +5,98 @@
 #include "RuleTypes.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/DataTable.h"
+#include "Kismet/KismetMathLibrary.h"
 
 URuleManager::URuleManager()
 {
 	static ConstructorHelpers::FObjectFinder<UDataTable> DistanceTable(TEXT("DataTable'/Game/DataTables/DistanceRuleTable.DistanceRuleTable'"));
 	if (DistanceTable.Succeeded())
 	{
-		DistanceRuleTable = DistanceTable.Object;
+		V_DistanceRuleTable = DistanceTable.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> StanceTable(TEXT("DataTable'/Game/DataTables/StanceRuleTable.StanceRuleTable'"));
+	if (StanceTable.Succeeded())
+	{
+		S_StanceRuleTable = StanceTable.Object;
+		InitStanceRuleTable();
+	}
 }
 
 float URuleManager::GetMultiplier(const UDataTable& dataTable, float value)
 {
+	//Read all the data from the given table
 	const FString context{ TEXT("Distance Rule Array Context") };
 	TArray<FValueRule*> outRowArr;
-	DistanceRuleTable->GetAllRows(context, outRowArr);
+	dataTable.GetAllRows(context, outRowArr);
 
-	//To be used in multiplier calculation
-	float lowMultiplier{INFINITY};
-	float lowValue{ INFINITY };
-	float highValue{ -INFINITY };
+	//Sort the array based on operator<
+	outRowArr.Sort();
 
+	//Smallest and biggest indexes
+	int smallest{ 0 };
+	int biggest{ outRowArr.Num() - 1 };
+
+	//If our value is less than our smallest value, we return the smallest multiplier
+	if (value <= outRowArr[smallest]->Value)
+		return outRowArr[smallest]->Multiplier;
+	
+	
+	//If our value is bigger than our biggest value, we return the biggest multiplier
+	if (value >= outRowArr[biggest]->Value)
+		return outRowArr[biggest]->Multiplier;
+	
+
+	float leftBorderIdx{};
+	float rightBorderIdx{};
 
 	for (int i = 0; i < outRowArr.Num(); ++i)
 	{
-		//Finds the lowest multiplier in the Data Table
-		if (outRowArr[i]->Multiplier < lowMultiplier)
+		//If we have the exact value in our array, we stop and return the corresponding multiplier
+		if (UKismetMathLibrary::EqualEqual_FloatFloat(outRowArr[i]->Value,value))
 		{
-			lowMultiplier = outRowArr[i]->Multiplier;
+			return outRowArr[i]->Multiplier;
 		}
 
-		if (outRowArr[i]->Value < lowValue)
+
+		//Get the left element index 
+		if (outRowArr[i]->Value <= value)
 		{
-			lowValue = outRowArr[i]->Value;
+			leftBorderIdx = i;
 		}
 
-		if (outRowArr[i]->Value > highValue)
+		//get the right element index
+		if (outRowArr[outRowArr.Num() - 1 - i]->Value >= value)
 		{
-			highValue = outRowArr[i]->Value;
+			rightBorderIdx = outRowArr.Num() - 1 - i;
 		}
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("Lowest value is: %f"), lowValue);
-	//UE_LOG(LogTemp, Warning, TEXT("Highest value is: %f"), highValue);
+	//If we made it so far, the value is between 2 other values
+	//https://www.bbc.co.uk/bitesize/guides/z9387p3/revision/5#:~:text=The%20straight%20line%20through%20two,coordinates%20of%20the%20two%20points.
+	// Formula for in between values y = mx + c
+	float m = (outRowArr[rightBorderIdx]->Multiplier - outRowArr[leftBorderIdx]->Multiplier) / (outRowArr[rightBorderIdx]->Value - outRowArr[leftBorderIdx]->Value);
+	float c = outRowArr[rightBorderIdx]->Multiplier - m * outRowArr[rightBorderIdx]->Value;
 
-	float multiplier{ lowMultiplier + (lowMultiplier / (highValue - lowValue)) * value };
-	UE_LOG(LogTemp, Warning, TEXT("Result value is: %f"), multiplier);
-	return multiplier;
+	return m * value + c;
+
+}
+
+void URuleManager::InitStanceRuleTable()
+{
+	TArray<FString> values;
+	values.Add("Test");
+	values.Add("Test2");
+
+	for (int i = 0; i < values.Num(); i++)
+	{
+		FStringRule rule;
+		rule.Description = "test" + i;
+		rule.Value = values[i];
+		rule.Multiplier = i;
+
+		S_StanceRuleTable->AddRow(FName(TEXT("NewRow") + i), rule);
+	}
+
+
 }

@@ -16,14 +16,17 @@ class AI_ACCURACY_API URuleManager : public UObject
 public:
 	URuleManager();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UDataTable* DistanceRuleTable;
+	UDataTable* V_DistanceRuleTable;
+	UDataTable* S_StanceRuleTable;
+	
 
 	float GetMultiplier(const UDataTable& dataTable, float value);
 
-	UDataTable* GetDistanceRuleTable() { return DistanceRuleTable; }
+	UDataTable* GetDistanceRuleTable() { return V_DistanceRuleTable; }
+	UDataTable* GetStanceRuleTable() { return S_StanceRuleTable; }
 
 private:
 
+	void InitStanceRuleTable();
 
 };

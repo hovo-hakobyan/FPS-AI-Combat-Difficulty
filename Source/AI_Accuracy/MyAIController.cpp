@@ -16,7 +16,8 @@
 #include "GameFramework/Character.h"
 #include "RuleManager.h"
 #include "AI_AccuracyCharacter.h"
-
+#include "Math/Vector.h"
+#include "Math/UnitConversion.h"
 
 
 AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
@@ -47,10 +48,7 @@ void AMyAIController::BeginPlay()
 	RunBehaviorTree(pBehaviorTree);
 	pBehaviorTreeComponent->StartTree(*pBehaviorTree);
 
-	if (RuleManager)
-	{
-		RuleManager->GetMultiplier(*RuleManager->GetDistanceRuleTable(), 40.f);
-	}
+	
 }
 
 void AMyAIController::OnPossess(APawn* const pawn)
@@ -76,45 +74,70 @@ void AMyAIController::OnPerception(AActor* actor,const FAIStimulus stimulus)
 {
 	const auto character = Cast<AAI_AccuracyCharacter>(actor);
 
-	//actor must have UAIPerceptionSimuliSourceComponent in order to be detected
-	if (character)
-	{
-		pBlackboard->SetValueAsBool(bb_keys::canSeePlayer, stimulus.WasSuccessfullySensed());
-		SetFocus(stimulus.WasSuccessfullySensed() ? character : nullptr);
-	}
+	if (!character)
+		return;
+
+	const auto controlledPawn = Cast<AEnemy>(GetPawn());
+	if (!controlledPawn)
+		return;
+
+	//Update BB value CanSeePlayer
+	pBlackboard->SetValueAsBool(bb_keys::canSeePlayer, stimulus.WasSuccessfullySensed());
+	SetFocus(stimulus.WasSuccessfullySensed() ? character : nullptr);
 	
+	if (!RuleManager)
+		return;
+
+	//Calculate values to get multipliers
+	float distanceValue = FVector::Distance(character->GetActorLocation(), controlledPawn->GetActorLocation());
+
+	//Convert distance to meters
+	distanceValue = FUnitConversion::Convert(distanceValue, EUnit::Centimeters, EUnit::Meters);
+
+	//Calculate multipliers
+	float distanceMultiplier = RuleManager->GetMultiplier(*RuleManager->GetDistanceRuleTable(), distanceValue);
 	
+	//Calculate final delay
+	float finalDelay = baseDelay * distanceMultiplier;
+
+	//Pass it to controlled pawn
+	controlledPawn->SetFinalDelay(finalDelay);
+
+	// Determins whether AI can shoot at the player (aka can AI see the player)
+	controlledPawn->SetCanShoot(!controlledPawn->GetCanShoot());
+
+
 }
 
 void AMyAIController::SetupPerceptionSystem()
 {
 	//create and initialize sight config object
-	pSightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
-	pAIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
+	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
 
 	//Player withing this radius == detected
-	pSightConfig->SightRadius = 2000.0f;
+	SightConfig->SightRadius = 2000.0f;
 
 	//Radius to leave sight
-	pSightConfig->LoseSightRadius = pSightConfig->SightRadius + 200.f;
+	SightConfig->LoseSightRadius = SightConfig->SightRadius + 200.f;
 
 	//FOV
-	pSightConfig->PeripheralVisionAngleDegrees = 90.f;
+	SightConfig->PeripheralVisionAngleDegrees = 90.f;
 
 	//Time (in seconds) to forget last seen loc
-	pSightConfig->SetMaxAge(5.f);
+	SightConfig->SetMaxAge(5.f);
 
-	pSightConfig->DetectionByAffiliation.bDetectEnemies = true;
-	pSightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-	pSightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
-	pAIPerceptionComponent->ConfigureSense(*pSightConfig);
+	AIPerceptionComponent->ConfigureSense(*SightConfig);
 	//add sight config component to perception component
-	pAIPerceptionComponent->SetDominantSense(pSightConfig->GetSenseImplementation());
+	AIPerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
 
 
 	//When something is perceieved, call the function
-	pAIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnPerception);
+	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnPerception);
 }
 
 

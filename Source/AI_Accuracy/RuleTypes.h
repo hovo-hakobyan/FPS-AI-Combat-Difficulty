@@ -7,18 +7,18 @@
 #include "RuleTypes.generated.h"
 
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct AI_ACCURACY_API FStringRule : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Multiplier;
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FString Value;
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FString Description;
 };
 
@@ -36,5 +36,8 @@ struct AI_ACCURACY_API FValueRule : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString Description;
 
-
+	FORCEINLINE bool operator<(const FValueRule& other) const
+	{
+		return Multiplier < other.Multiplier;
+	}
 };
