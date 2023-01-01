@@ -15,19 +15,6 @@ UMyGameInstance::UMyGameInstance(const FObjectInitializer& ObjectInitializer)
 
 	GameOverWidgetClass = GameOverWidget.Class;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> StanceWgt(TEXT("/Game/FirstPersonCPP/Blueprints/WBP_Stance"));
-
-	if (!StanceWgt.Class)
-		return;
-
-	//StanceWidgetClass = StanceWgt.Class;
-
-	//StanceWidget = CreateWidget<UUserWidget>(this, StanceWidgetClass);
-	//if (StanceWidget)
-	//{
-	//	StanceWidget->AddToViewport();
-	//}
-	
 }
 
 void UMyGameInstance::Init()

@@ -17,6 +17,8 @@
 #include "HP.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Texture.h"
+#include "StanceWidget.h"
+#include "Blueprint/UserWidget.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -96,9 +98,13 @@ AAI_AccuracyCharacter::AAI_AccuracyCharacter()
 	this->AddOwnedComponent(HealthComponent);
 
 	//Icons for Stance UI
-	crouchTexture = CreateDefaultSubobject<UTexture>(TEXT("Crouch texture"));
-	standTexture = CreateDefaultSubobject<UTexture>(TEXT("Stand texture"));
+	crouchTexture = CreateDefaultSubobject<UTexture2D>(TEXT("Crouch texture"));
+	standTexture = CreateDefaultSubobject<UTexture2D>(TEXT("Stand texture"));
 
+	StanceWidget = nullptr;
+	StanceWidgetClass = nullptr;
+
+	CharacterStance = ECharacterStance::Standing;
 }
 
 void AAI_AccuracyCharacter::BeginPlay()
@@ -121,7 +127,28 @@ void AAI_AccuracyCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
+	if (IsLocallyControlled() && StanceWidgetClass)
+	{
+		APlayerController* controller = GetController<APlayerController>();
+		check(controller);
+		StanceWidget = CreateWidget<UStanceWidget>(controller, StanceWidgetClass);
+		check(StanceWidget);
+		StanceWidget->AddToPlayerScreen();
+		StanceWidget->SetImage(standTexture);
+	}
 
+}
+
+void AAI_AccuracyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (StanceWidget)
+	{
+		StanceWidget->RemoveFromParent();
+		//Garbage collection will delete this
+		StanceWidget = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 
@@ -213,8 +240,6 @@ void AAI_AccuracyCharacter::OnFire()
 		}
 	}
 
-	
-
 }
 
 void AAI_AccuracyCharacter::OnResetVR()
@@ -283,14 +308,17 @@ void AAI_AccuracyCharacter::StartCrouch()
 {
 	GetCapsuleComponent()->SetCapsuleHalfHeight(48.0f);
 	ACharacter::Crouch();
-	isCrouching = true;
+	CharacterStance = ECharacterStance::Crouching;
+	StanceWidget->SetImage(crouchTexture);
 }
 
 void AAI_AccuracyCharacter::StopCrouch()
 {
 	GetCapsuleComponent()->SetCapsuleHalfHeight(96.0f);
 	ACharacter::UnCrouch();
-	isCrouching = false;
+	StanceWidget->SetImage(standTexture);
+	CharacterStance = ECharacterStance::Standing;
+	
 }
 
 bool AAI_AccuracyCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)

@@ -23,14 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShowGameOverWidget();
 
-protected:
-	/*UPROPERTY()
-	class UUserWidget* StanceWidget;*/
-
 private:
 	TSubclassOf<class UUserWidget> GameOverWidgetClass;
 
-	//TSubclassOf<class UUserWidget> StanceWidgetClass;
 
 	
 };

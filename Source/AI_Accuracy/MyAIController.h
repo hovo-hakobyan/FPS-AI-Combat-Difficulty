@@ -19,6 +19,8 @@ public:
 	AMyAIController(const FObjectInitializer& objectInitializer = FObjectInitializer::Get());
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+
 
 	//When controller possesses a pawn
 	virtual void OnPossess(APawn* const pawn) override;
@@ -46,8 +48,15 @@ private:
 
 	//Rules and multipliers
 	class URuleManager* RuleManager;
-	float baseDelay = 0.5f;
+	float baseDelay = 2.5f;
 
+	bool IsAlert = false;
+
+	UPROPERTY()
+	class AAI_AccuracyCharacter* PlayerCharRef;
+
+	UPROPERTY()
+	class AEnemy* ControlledPawnRef;
 
 	UFUNCTION()
 	void OnPerception(AActor* actor,const FAIStimulus stimulus);

@@ -15,11 +15,14 @@ struct AI_ACCURACY_API FStringRule : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Multiplier;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString Value;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	FString Description;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isValid;
 };
 
 USTRUCT(BlueprintType)

@@ -6,6 +6,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/DataTable.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AI_AccuracyCharacter.h"
 
 URuleManager::URuleManager()
 {
@@ -19,7 +20,13 @@ URuleManager::URuleManager()
 	if (StanceTable.Succeeded())
 	{
 		S_StanceRuleTable = StanceTable.Object;
-		InitStanceRuleTable();
+		ValidateStringTableStance();
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DirTable(TEXT("DataTable'/Game/DataTables/PlayerDirTable.PlayerDirTable'"));
+	if (DirTable.Succeeded())
+	{
+		V_DirectionRuleTable = DirTable.Object;
 	}
 }
 
@@ -82,21 +89,46 @@ float URuleManager::GetMultiplier(const UDataTable& dataTable, float value)
 
 }
 
-void URuleManager::InitStanceRuleTable()
+float URuleManager::GetMultiplierFromString(const UDataTable& dataTable, const FString& value)
 {
-	TArray<FString> values;
-	values.Add("Test");
-	values.Add("Test2");
+	//Get the row based on the RowName
+	const FString context{ TEXT("Find multiplier from string") };
+	FStringRule* row = dataTable.FindRow<FStringRule>(FName(*value), context);
 
-	for (int i = 0; i < values.Num(); i++)
+	//If the row exists
+	if (row)
 	{
-		FStringRule rule;
-		rule.Description = "test" + i;
-		rule.Value = values[i];
-		rule.Multiplier = i;
-
-		S_StanceRuleTable->AddRow(FName(TEXT("NewRow") + i), rule);
+		//If the content of the row is valid
+		if (row->isValid)
+		{
+			return row->Multiplier;
+		}
 	}
 
+	//If invalid row then we want this multiplayer to have no effect;
+	return 1.f;
+}
+
+void URuleManager::ValidateStringTableStance()
+{
+	//Read all the data from the given table
+	const FString context{ TEXT("Stance rule context")};
+	TArray<FStringRule*> outRowArr;
+	S_StanceRuleTable->GetAllRows(context, outRowArr);
+
+	for (int i = 0; i < outRowArr.Num(); i++)
+	{
+		for (ECharacterStance stance : TEnumRange<ECharacterStance>())
+		{
+			if (outRowArr[i]->Value == UEnum::GetDisplayValueAsText(stance).ToString())
+			{
+				outRowArr[i]->isValid = true;
+				break;
+				
+			}
+		}
+	}
+
+	
 
 }

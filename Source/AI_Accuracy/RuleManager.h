@@ -16,17 +16,23 @@ class AI_ACCURACY_API URuleManager : public UObject
 public:
 	URuleManager();
 
+	UPROPERTY()
 	UDataTable* V_DistanceRuleTable;
+	UPROPERTY()
 	UDataTable* S_StanceRuleTable;
+	UPROPERTY()
+	UDataTable* V_DirectionRuleTable;
 	
 
 	float GetMultiplier(const UDataTable& dataTable, float value);
+	float GetMultiplierFromString(const UDataTable& dataTable, const FString& value);
 
 	UDataTable* GetDistanceRuleTable() { return V_DistanceRuleTable; }
 	UDataTable* GetStanceRuleTable() { return S_StanceRuleTable; }
+	UDataTable* GetDirectionRuleTable() { return V_DirectionRuleTable; }
 
 private:
 
-	void InitStanceRuleTable();
+	void ValidateStringTableStance();
 
 };

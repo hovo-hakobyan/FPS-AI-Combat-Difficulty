@@ -14,8 +14,18 @@ class UCameraComponent;
 class UMotionControllerComponent;
 class UAnimMontage;
 class USoundBase;
-class UTexture;
+class UTexture2D;
 
+UENUM()
+enum class ECharacterStance : uint8
+{
+	Crouching,
+	Standing,
+
+	//To iterate over enum elements
+	Count UMETA(Hidden)
+};
+ENUM_RANGE_BY_COUNT(ECharacterStance, ECharacterStance::Count);
 
 UCLASS(config=Game)
 class AAI_AccuracyCharacter : public ACharacter
@@ -57,6 +67,7 @@ class AAI_AccuracyCharacter : public ACharacter
 	
 
 public:
+
 	AAI_AccuracyCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -90,13 +101,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	class UHP* HealthComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		bool isCrouching;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
-	UTexture* crouchTexture;
+	UTexture2D* crouchTexture;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
-	UTexture* standTexture;
+	UTexture2D* standTexture;
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
@@ -104,15 +112,24 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	UHP* GetHealthComponent()const { return HealthComponent; }
+	ECharacterStance GetCharacterStance() const { return CharacterStance; }
 
 	UFUNCTION(BlueprintNativeEvent)
 	void PlayBloodAnimation();
 	void PlayBloodAnimation_Implementation();
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UStanceWidget> StanceWidgetClass;
 
+	UPROPERTY()
+	class UStanceWidget* StanceWidget;
+
+	UPROPERTY()
+	ECharacterStance CharacterStance;
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** Fires a projectile. */
 	void OnFire();
