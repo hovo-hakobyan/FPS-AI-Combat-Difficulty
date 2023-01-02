@@ -18,7 +18,9 @@
 #include "AI_AccuracyCharacter.h"
 #include "Math/Vector.h"
 #include "Math/UnitConversion.h"
-
+#include "dna/types/Vector3.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "DrawDebugHelpers.h"
 
 AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
 {
@@ -68,20 +70,40 @@ void AMyAIController::Tick(float DeltaSeconds)
 
 	if (IsAlert)
 	{
-		//Calculate values to get multipliers
+		//Calculate distance value to plug into GetMultiplier
+		//
+		//
+		//
 		float distanceValue = FVector::Distance(ControlledPawnRef->GetActorLocation(), PlayerCharRef->GetActorLocation());
-		float dirAngleDiff = 0;
 
 		//Convert distance to meters
 		distanceValue = FUnitConversion::Convert(distanceValue, EUnit::Centimeters, EUnit::Meters);
-
 		
+		//Calculate angle value to plug into GetMultiplier
+		//
+		// 
+		// 
+		//Get player velocity vec and Player-AI vec
+		FVector vec1 = PlayerCharRef->GetVelocity();
+		
+		FVector vec2 = ControlledPawnRef->GetActorLocation() - PlayerCharRef->GetActorLocation();
+		
+		//Normalize for correct calculation
+		vec1.Normalize();
+		vec2.Normalize();
+
+		float angle = UKismetMathLibrary::DegAcos(FVector::DotProduct(vec1, vec2));
+		angle = angle == 0.f ? 1.0f : angle;
+
 		//Calculate multipliers
+		//
+		//
 		float distanceMultiplier = RuleManager->GetMultiplier(*RuleManager->GetDistanceRuleTable(), distanceValue);
 		float stanceMultiplier = RuleManager->GetMultiplierFromString(*RuleManager->GetStanceRuleTable(), UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString());
-
+		float playerDirMultiplier = RuleManager->GetMultiplier(*RuleManager->GetDirectionRuleTable(), angle);
+		
 		//Calculate final delay
-		float finalDelay = baseDelay * distanceMultiplier * stanceMultiplier;
+		float finalDelay = baseDelay * distanceMultiplier * stanceMultiplier * playerDirMultiplier;
 
 		//Pass it to controlled pawn
 		ControlledPawnRef->SetFinalDelay(finalDelay);

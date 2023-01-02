@@ -20,6 +20,7 @@
 #include "StanceWidget.h"
 #include "Blueprint/UserWidget.h"
 
+
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 //////////////////////////////////////////////////////////////////////////
@@ -280,7 +281,9 @@ void AAI_AccuracyCharacter::MoveForward(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
+		
 	}
+	
 }
 
 void AAI_AccuracyCharacter::MoveRight(float Value)
