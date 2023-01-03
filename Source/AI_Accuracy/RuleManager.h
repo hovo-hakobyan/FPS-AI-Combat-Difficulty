@@ -4,9 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "RuleTypes.h"
 #include "RuleManager.generated.h"
 
 class UDataTable;
+
+UENUM()
+enum class EValueRule : uint8
+{
+	DistanceRule,
+	VelocityRule,
+};
+
+UENUM()
+enum class EStringRule : uint8
+{
+	StanceRule,
+};
+
 
 UCLASS()
 class AI_ACCURACY_API URuleManager : public UObject
@@ -16,23 +31,30 @@ class AI_ACCURACY_API URuleManager : public UObject
 public:
 	URuleManager();
 
+	/**Pointer to DistanceTable created in the engine*/
 	UPROPERTY()
 	UDataTable* V_DistanceRuleTable;
+
+	/**Pointer to StanceTable created in the engine*/
 	UPROPERTY()
 	UDataTable* S_StanceRuleTable;
+
+	/**Pointer to VelocityTable created in the engine*/
 	UPROPERTY()
-	UDataTable* V_DirectionRuleTable;
+	UDataTable* V_VelocityRuleTable;
 	
+	float GetMultiplier(const EValueRule& valueRule, float value);
+	float GetMultiplierFromString(const EStringRule& valueRule, const FString& value);
 
-	float GetMultiplier(const UDataTable& dataTable, float value);
-	float GetMultiplierFromString(const UDataTable& dataTable, const FString& value);
-
-	UDataTable* GetDistanceRuleTable() { return V_DistanceRuleTable; }
 	UDataTable* GetStanceRuleTable() { return S_StanceRuleTable; }
-	UDataTable* GetDirectionRuleTable() { return V_DirectionRuleTable; }
-
+	UDataTable* GetDistanceRuleTable() { return V_DistanceRuleTable; }
+	UDataTable* GetVelocityRuleTable() { return V_VelocityRuleTable; }
 private:
 
 	void ValidateStringTableStance();
 
+	/**Arrays to cache table content for later use*/
+	TArray<FValueRule*> DistanceRuleArr;
+	TArray<FValueRule*> VelocityRuleArr;
+	TArray<FStringRule*> StanceRuleArr;
 };

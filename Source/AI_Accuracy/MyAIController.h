@@ -48,7 +48,7 @@ private:
 
 	//Rules and multipliers
 	class URuleManager* RuleManager;
-	float baseDelay = 2.5f;
+	float baseDelay = 1.f;
 
 	bool IsAlert = false;
 

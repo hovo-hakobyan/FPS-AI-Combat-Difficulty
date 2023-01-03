@@ -49,8 +49,7 @@ void AMyProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	{
 		if (pChar->GetHealthComponent())
 		{
-			
-			int damageAmount{ 10};
+			int damageAmount{ 1};
 			pChar->GetHealthComponent()->TakeDamage(damageAmount);
 			pChar->PlayBloodAnimation();
 		}

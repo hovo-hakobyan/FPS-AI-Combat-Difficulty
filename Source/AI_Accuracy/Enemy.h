@@ -7,6 +7,7 @@
 #include "Engine/DataTable.h"
 #include "Enemy.generated.h"
 
+class UWidgetComponent;
 
 UCLASS()
 class AI_ACCURACY_API AEnemy : public ACharacter
@@ -50,7 +51,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	TSubclassOf<class AMyProjectile> ProjectileClass;
 	
+	UPROPERTY(EditAnywhere, Category = "UI")
+	class UWidgetComponent* TimerWidgetComponent;
 	
+	UPROPERTY(EditAnywhere)
+	class UAITimerWidget* TimerWidget;
 
 protected:
 	// Called when the game starts or when spawned

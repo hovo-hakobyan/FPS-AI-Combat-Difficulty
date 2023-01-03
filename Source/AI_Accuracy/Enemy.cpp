@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Particles/ParticleSystem.h"
+#include "AITimerWidget.h"
+#include "Components/WidgetComponent.h"
 
 
 // Sets default values
@@ -36,7 +38,9 @@ AEnemy::AEnemy()
 
 	PS_GunFireComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WeaponParticle"));
 	PS_GunFireComp->SetupAttachment(GunMesh);
-
+	
+	TimerWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("TimerWidgetComponent"));
+	TimerWidgetComponent->SetupAttachment(RootComponent);
 
 	
 }
@@ -50,8 +54,21 @@ void AEnemy::BeginPlay()
 
 	GunMesh->SetHiddenInGame(false, false);
 	GetMesh()->SetHiddenInGame(false, false);
-	
-	
+
+	if (TimerWidgetComponent)
+	{
+		TimerWidget = Cast<UAITimerWidget>(TimerWidgetComponent->GetWidget());
+
+		if (TimerWidget)
+		{
+			TimerWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Not Successful"));
+		}
+	}
+
 }
 
 void AEnemy::Shoot()
@@ -125,10 +142,19 @@ void AEnemy::Tick(float DeltaTime)
 	}
 
 	currentDelay += DeltaTime;
+	const FString text = "Current Delay: " + FString::SanitizeFloat(currentDelay) + "\nFinalDelay: " + FString::SanitizeFloat(finalDelay);
+	TimerWidget->SetText(text);
+
+	if (currentDelay >=0.3f)
+	{
+		TimerWidget->SetHitMissText(false);
+	}
+	
 
 	if (currentDelay >= finalDelay)
 	{
 		shouldHit = true;
+		TimerWidget->SetHitMissText(true);
 		currentDelay = 0.f;	
 	}
 

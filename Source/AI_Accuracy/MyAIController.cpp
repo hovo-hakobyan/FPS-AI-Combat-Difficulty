@@ -21,6 +21,8 @@
 #include "dna/types/Vector3.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "AITimerWidget.h"
+#include "Components/WidgetComponent.h"
 
 AMyAIController::AMyAIController(const FObjectInitializer& objectInitializer)
 {
@@ -98,12 +100,12 @@ void AMyAIController::Tick(float DeltaSeconds)
 		//Calculate multipliers
 		//
 		//
-		float distanceMultiplier = RuleManager->GetMultiplier(*RuleManager->GetDistanceRuleTable(), distanceValue);
-		float stanceMultiplier = RuleManager->GetMultiplierFromString(*RuleManager->GetStanceRuleTable(), UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString());
-		float playerDirMultiplier = RuleManager->GetMultiplier(*RuleManager->GetDirectionRuleTable(), angle);
+		float distanceMultiplier = RuleManager->GetMultiplier(EValueRule::DistanceRule, distanceValue);
+		float stanceMultiplier = RuleManager->GetMultiplierFromString(EStringRule::StanceRule, UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString());
+		float velocityMultiplier = RuleManager->GetMultiplier(EValueRule::VelocityRule, angle);
 		
 		//Calculate final delay
-		float finalDelay = baseDelay * distanceMultiplier * stanceMultiplier * playerDirMultiplier;
+		float finalDelay = baseDelay * distanceMultiplier * stanceMultiplier * velocityMultiplier;
 
 		//Pass it to controlled pawn
 		ControlledPawnRef->SetFinalDelay(finalDelay);
@@ -137,7 +139,6 @@ void AMyAIController::OnPerception(AActor* actor,const FAIStimulus stimulus)
 	if (!character)
 		return;
 
-
 	//Update BB value CanSeePlayer
 	pBlackboard->SetValueAsBool(bb_keys::canSeePlayer, stimulus.WasSuccessfullySensed());
 	SetFocus(stimulus.WasSuccessfullySensed() ? PlayerCharRef : nullptr);
@@ -146,6 +147,14 @@ void AMyAIController::OnPerception(AActor* actor,const FAIStimulus stimulus)
 	// Determins whether AI can shoot at the player (aka can AI see the player)
 	IsAlert = !IsAlert;
 	ControlledPawnRef->SetCanShoot(IsAlert);
+
+	if (ControlledPawnRef->TimerWidget->GetVisibility() == ESlateVisibility::Visible)
+	{
+		ControlledPawnRef->TimerWidget->SetVisibility(ESlateVisibility::Hidden);
+		return;
+	}
+	ControlledPawnRef->TimerWidget->SetVisibility(ESlateVisibility::Visible);
+	
 
 }
 

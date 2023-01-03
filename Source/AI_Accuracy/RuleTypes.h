@@ -18,7 +18,7 @@ struct AI_ACCURACY_API FStringRule : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString Value;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FString Description;
 
 	UPROPERTY(BlueprintReadOnly)
