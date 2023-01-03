@@ -44,15 +44,15 @@ In our logic we would have:
 * Code that calculates when this agent should get the token (in seconds), thus when should the bullet hit the player (dynamic timer)
 
 
-To simplify further explanation I will use a single AI. In this case we can ignore the logic that will determine which AI is the most relevant and we can focus on the delay calculation for a single AI. I will show how to deal with multiple AI agents in the upcoming sections.
+To simplify further explanation I will use a single AI. In this case we can ignore the logic that will determine which AI is the most relevant and we can focus on the delay calculation for a single AI. Understanding how to deal with a single agent will enable us to deal with multiple agents without difficulties since both concepts use similar techniques.
 ## Dealing With Single AI
 
 ### Delay between hits
-How can we calculate the delay between hits, a.k.a when should an agent get the token? If we use a constant delay between each hit, the player might find out that the shots hit them every x second, which is not believable behavior. We want to make this delay dynamic, so we'll use a formula to calculate the final delay.
+How can we calculate the delay between hits, a.k.a when should an agent hit us? If we use a constant delay between each hit, the player might find out that the shots hit them every x second, which is not believable behavior. But we also don't want randomness since it can create weird situations. We want to make this delay dynamic, which gets us the best of both worlds. So we'll use a formula to calculate this final delay.
 
 `finalDelay = baseDelay * multipliers`
 
-### What are Rules and Multipliers
+### Rules and Multipliers
 Multipliers are floating point values that are defined by us using Rules. Our implementation guarantees that every multiplier can adjust its value depending on the scenario. 
 
 <ins>**Example**:</ins> 
@@ -126,7 +126,7 @@ With the explanation out of the way, I am going to define some actual rules and 
 
 ![StanceMultiplier](https://user-images.githubusercontent.com/88614889/210240189-85397fde-a288-48ff-b593-53f3b38da5e5.png)
 
-### Rule 3: Player direction
+### Rule 3: Player velocity
 **Goal**
 
 * Punish the player when running toward the AI
@@ -242,8 +242,6 @@ struct AI_ACCURACY_API FValueRule : public FTableRowBase
 
 <ins>**Explanation**</ins>
 
-When defining a struct that is going to be used inside a Data Table, it needs to inherit from `FTableRowBase`. 
-
 FValueRule:
 
 * This type can be used for any rule that has numerical values connected to their multipliers
@@ -257,6 +255,32 @@ FStringRule:
 * In our case, Stance rule can return either 1 or 2, nothing in between, hence it is a String Rule
 
 Both structs have a similar structure. Two notable differences are the `isValid` boolean and the `operator<`, but we can ignore them for now. `Multiplier` and `Value` will be used to determine our logic, so they are essential in our structs. Description is an optional variable to provide more clarity.
+
+## Creating Data Tables
+
+Creating a data table in unreal is simple.
+
+![HowToCreateDataTables](https://user-images.githubusercontent.com/88614889/210407232-b03e861a-8e53-4325-8838-c0dfd4d665ce.gif)
+
+Inside the `RuleTypes.h` the structs inherit from `FTableRowBase`. There is a reason for this. 
+
+When creating a data table inside Unreal, we must specify a *Row Structure.* Unreal has pre-defined row structures that can be used. But if we want our custom made one, our struct must inherit from `FTableRowBase`.
+
+
+![RowStructureChoose](https://user-images.githubusercontent.com/88614889/210408751-11f5a44f-39ad-4de8-b26f-7a941c7816f1.png)
+
+Our 3 Rule data tables are the following:
+
+![VelRuleTable](https://user-images.githubusercontent.com/88614889/210410088-f67635c6-b465-47b2-8038-8ddb7cc2bea9.png)
+
+
+![DistanceRuleTable](https://user-images.githubusercontent.com/88614889/210410098-e1e16803-2909-4b2c-9adc-0569612ec579.png)
+
+
+![stanceRuleTable](https://user-images.githubusercontent.com/88614889/210410104-67cb4373-3d4e-4ddb-a4d0-9cb34bada635.png)
+
+As we can see, the column names correspond with the variables we created inside the structs. This is essential to understand, since this enables us to expose more variables to the designers by simply adding them inside our structs from c++.
+
 
 ### Creating Rule Manager
 <ins>**Introduction**</ins>
@@ -274,13 +298,8 @@ This class:
 <ins>**Code**</ins>
 
 `RuleManager.h`
+
 ```
-#include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
-#include "RuleManager.generated.h"
-
-class UDataTable;
-
 UCLASS()
 class AI_ACCURACY_API URuleManager : public UObject
 {
@@ -289,35 +308,41 @@ class AI_ACCURACY_API URuleManager : public UObject
 public:
 	URuleManager();
 
+	/**Pointer to DistanceTable created in the engine*/
 	UPROPERTY()
 	UDataTable* V_DistanceRuleTable;
+
+	/**Pointer to StanceTable created in the engine*/
 	UPROPERTY()
 	UDataTable* S_StanceRuleTable;
-	UPROPERTY()
-	UDataTable* V_DirectionRuleTable;	
 
-	UDataTable* GetDistanceRuleTable() { return V_DistanceRuleTable; }
-	UDataTable* GetStanceRuleTable() { return S_StanceRuleTable; }
-	UDataTable* GetDirectionRuleTable() { return V_DirectionRuleTable; }
+	/**Pointer to VelocityTable created in the engine*/
+	UPROPERTY()
+	UDataTable* V_VelocityRuleTable;
+private:
+	/**Arrays to cache table content for later use*/
+	TArray<FValueRule*> DistanceRuleArr;
+	TArray<FValueRule*> DirectionRuleArr;
+	TArray<FStringRule*> StanceRuleArr;
 };
 
 ```
 
+First off, we want to be able to access the data tables created inside the engine from the code. So we create pointers to those data tables. Then, we don't want to read the data every time we need it, so we read all the necessary content in the constructor and store it inside TArrays.
+
 `RuleManager.cpp`
 ```
-#include "RuleManager.h"
-#include "RuleTypes.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Engine/DataTable.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "AI_AccuracyCharacter.h"
-
 URuleManager::URuleManager()
 {
 	static ConstructorHelpers::FObjectFinder<UDataTable> DistanceTable(TEXT("DataTable'/Game/DataTables/DistanceRuleTable.DistanceRuleTable'"));
 	if (DistanceTable.Succeeded())
 	{
 		V_DistanceRuleTable = DistanceTable.Object;
+
+		//Cache the table in array and pre sort
+		const FString context{ TEXT("Distance Rule Array Context") };
+		V_DistanceRuleTable->GetAllRows(context, DistanceRuleArr);
+		DistanceRuleArr.Sort();
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> StanceTable(TEXT("DataTable'/Game/DataTables/StanceRuleTable.StanceRuleTable'"));
@@ -326,14 +351,101 @@ URuleManager::URuleManager()
 		S_StanceRuleTable = StanceTable.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> DirTable(TEXT("DataTable'/Game/DataTables/PlayerDirTable.PlayerDirTable'"));
-	if (DirTable.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UDataTable> VelTable(TEXT("DataTable'/Game/DataTables/VelocityRuleTable.VelocityRuleTable'"));
+	if (VelTable.Succeeded())
 	{
-		V_DirectionRuleTable = DirTable.Object;
+		V_VelocityRuleTable = VelTable.Object;
+
+		//Cache the table in array and pre sort
+		const FString context{ TEXT("Velocity Rule Array Context") };
+		V_VelocityRuleTable->GetAllRows(context, VelocityRuleArr);
+		VelocityRuleArr.Sort();
 	}
 }
 ```
 
-<ins>**Explanation**</ins>
+As you can see, we don't cache the content of our String Rule yet. That is because there is plenty of room for errors when inputting data inside a string rule table.
+Since the value type inside a string rule is an `FString`, the user can input any text. Even the slightest typo can cause our program to break. So we want to validate the data inside a string rule before copying them to our local `TArray`. We also want to give the user some feedback in case they made a mistake. We will use a separate function for this.
 
-So far the functionality of our RuleManager is fairly simple. We create 3 `UDataTable` objects using the `FObjectFinder` function that the framework provides and link them to the Data Tables that we created in the editor.
+`RuleManager.h`
+```
+void ValidateStringTableStance();
+```
+
+`RuleManager.cpp`
+```
+void URuleManager::ValidateStringTableStance()
+{
+	//Read all the data from the given table
+	const FString context{ TEXT("Stance rule context")};
+	TArray<FStringRule*> outRowArr;
+	S_StanceRuleTable->GetAllRows(context, outRowArr);
+
+	//Validate every row inside the data table
+	for (int i = 0; i < outRowArr.Num(); i++)
+	{
+		outRowArr[i]->Description = "INVALID VALUE";
+		outRowArr[i]->isValid = false;
+
+		//Custom enum class that keeps information about player stances
+		for (ECharacterStance stance : TEnumRange<ECharacterStance>())
+		{
+			if (outRowArr[i]->Value == UEnum::GetDisplayValueAsText(stance).ToString())
+			{
+				outRowArr[i]->isValid = true;
+				outRowArr[i]->Description = "VALID VALUE";
+				break;
+			}
+		}
+	}
+
+	//Copy the validated data to our local array
+	StanceRuleArr = outRowArr;
+}
+
+```
+
+It is important to note that the validation will only work if the Row Names inside our data tables correspond with the names inside our Enumeration that keeps track of the player stances.
+
+In this project I have defined the following enum:
+
+```
+UENUM()
+enum class ECharacterStance : uint8
+{
+	Crouching,
+	Standing,
+
+	//To iterate over enum elements
+	Count UMETA(Hidden)
+};
+ENUM_RANGE_BY_COUNT(ECharacterStance, ECharacterStance::Count);
+```
+
+Let's see what happens if we add a stance to our table that doesn't exist.
+
+
+![image](https://user-images.githubusercontent.com/88614889/210423639-ac72769c-cfd3-4b8f-841d-b8b5a0a89053.png)
+
+
+After compiling, our code validates the first two stances (which are present inside our enum), but overrides the Flying stance description since it is not valid.
+
+Now let's add Flying to our enum class and see what happens.
+```
+UENUM()
+enum class ECharacterStance : uint8
+{
+	Crouching,
+	Standing,
+	Flying,
+
+	//To iterate over enum elements
+	Count UMETA(Hidden)
+};
+ENUM_RANGE_BY_COUNT(ECharacterStance, ECharacterStance::Count);
+```
+
+![image](https://user-images.githubusercontent.com/88614889/210421775-5d37d1c1-29ef-4b9b-947b-efeb78702927.png)
+
+As we can see, flying gets recognized. This means that the corresponding multiplier can be used.
+
