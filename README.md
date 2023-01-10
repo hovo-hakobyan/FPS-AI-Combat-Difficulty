@@ -365,7 +365,7 @@ URuleManager::URuleManager()
 ```
 
 As you can see, we don't cache the content of our String Rule yet. That is because there is plenty of room for errors when inputting data inside a string rule table.
-Since the value type inside a string rule is an `FString`, the user can input any text. Even the slightest typo can cause our program to break. So we want to validate the data inside a string rule before copying them to our local `TArray`. We also want to give the user some feedback in case they made a mistake. We will use a separate function for this.
+Since the value type inside a string rule is an `FString`, the user can input any text. Even the slightest typo can cause our game to break. So we want to validate the data inside a string rule before copying them to our local `TArray`. We also want to give the user some feedback in case they made a mistake. We will use a separate function for this.
 
 `RuleManager.h`
 ```
