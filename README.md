@@ -449,3 +449,192 @@ ENUM_RANGE_BY_COUNT(ECharacterStance, ECharacterStance::Count);
 
 As we can see, flying gets recognized. This means that the corresponding multiplier can be used.
 
+### Reading data: String Rule Tables
+We know that String Rule Tables are about exact values. The player is either crouching or standing, with no in-between. So we don't have to interpolate between multipliers.
+
+With that being said, defining a function that returns a multiplier from a String Rule Table is straightforward. 
+
+**Code**
+
+`RuleManager.h`
+```
+float GetMultiplierFromString(const EStringRule& valueRule, const FString& value);
+```
+```
+UENUM()
+enum class EStringRule : uint8
+{
+	//Existing string rules
+	StanceRule,
+};
+```
+
+
+`RuleManager.cpp`
+```
+float URuleManager::GetMultiplierFromString(const EStringRule& valueRule, const FString& value)
+{
+	//Get the row based on the RowName
+	const FString context{ TEXT("Find multiplier from string") };
+	FStringRule* row = nullptr;
+
+	switch (valueRule)
+	{
+	case EStringRule::StanceRule:
+		row = S_StanceRuleTable->FindRow<FStringRule>(FName(*value), context);
+		break;
+	}
+
+	//If the row exists
+	if (row)
+	{
+		//If the content of the row is valid
+		if (row->isValid)
+			return row->Multiplier;
+	}
+
+	//If invalid row then we want this multiplayer to have no effect;
+	return 1.f;
+}
+```
+**Explanation**
+
+In the previous section, we cached the contents of our Data Tables. It is crucial because the functions that return multipliers get called every frame. So we don't want to read the data from the table every frame. It can cause some performance issues. Instead, I have defined a struct that holds every String Rule type. When we call the `GetMultiplierFromString` function, we need to specify which rule we want to use. This way we can read data from the right `TArray`, which is already cached.  
+
+### Reading data: Value Rule Tables
+Value rules are more complex. If we get a value that is between 2 predefined values, we don't know what our exact multiplier is.
+
+**Example**
+
+* In our Velocity Rule, we get a 92° angle
+* How do we determine the multiplier?
+
+![ValueRuleExplanation](https://user-images.githubusercontent.com/88614889/211813463-9cbc9f7e-d02b-4cda-ab8a-aec322f7e64c.png)
+
+We will use the *Equation of a line through two points* to interpolate between 2 predefined values. Explanation can be found [here](https://www.bbc.co.uk/bitesize/guides/z9387p3/revision/5#:~:text=The%20straight%20line%20through%20two,coordinates%20of%20the%20two%20points).
+
+The formula is the following:
+
+`y = mx + c `, 
+
+where `y` is the multiplier we want to return, `x` is the value we get (92°), `m`is the *gradient* of the line and `c` is the y-intercept.
+
+To find `m` and `c` we use the following formulas:
+
+`m = (y2 - y1 ) / (x2 - x1)`
+
+`c = y2 - m * x2`
+
+With that knowledge, all we need to know is find the neighboring values of the input value. In our example the left value of `92°` is `90°`, the right value is `135°`.
+Since our value arrays are sorted, we can find the neigbhors with a single *for loop*
+
+``` 
+	float leftBorderIdx{};
+	float rightBorderIdx{};
+
+	//Go over every element of table (cached array)
+	for (int i = 0; i < outRowArrPtr->Num(); ++i)
+	{
+		//Get the left element index 
+		if ((*outRowArrPtr)[i]->Value <= value)
+		{
+			leftBorderIdx = i;
+		}
+
+		//get the right element index
+		if ((*outRowArrPtr)[outRowArrPtr->Num() - 1 - i]->Value >= value)
+		{
+			rightBorderIdx = outRowArrPtr->Num() - 1 - i;
+		}
+	}
+```
+
+Then, after finding our left and right values, we can plug them into the formulas and find our exact multiplier.
+
+```
+// Formula for in between values y = mx + c
+	float m = ((*outRowArrPtr)[rightBorderIdx]->Multiplier - (*outRowArrPtr)[leftBorderIdx]->Multiplier) / ((*outRowArrPtr)[rightBorderIdx]->Value - (*outRowArrPtr)[leftBorderIdx]->Value);
+	float c = (*outRowArrPtr)[rightBorderIdx]->Multiplier - m * (*outRowArrPtr)[rightBorderIdx]->Value;
+
+	return m * value + c;
+```
+
+The complete function looks like this:
+
+`RuleManager.cpp`
+
+```
+float URuleManager::GetMultiplier(const EValueRule& valueRule, float value)
+{
+	//avoids copying the array
+	TArray<FValueRule*>* outRowArrPtr = nullptr;
+
+	switch (valueRule)
+	{
+	case EValueRule::DistanceRule:
+		outRowArrPtr = &DistanceRuleArr;
+		break;
+	case EValueRule::VelocityRule:
+		outRowArrPtr = &VelocityRuleArr;
+		break;
+	}
+		
+	if (!outRowArrPtr)
+		return 1.f;
+
+	//Smallest and biggest indexes (array sorted)
+	int smallest{ 0 };
+	int biggest{ outRowArrPtr->Num() - 1 };
+
+	//If our value is less than our smallest value, we return the smallest multiplier
+	if (value <= (*outRowArrPtr)[smallest]->Value)
+		return (*outRowArrPtr)[smallest]->Multiplier;
+	
+	
+	//If our value is bigger than our biggest value, we return the biggest multiplier
+	if (value >= (*outRowArrPtr)[biggest]->Value)
+		return (*outRowArrPtr)[biggest]->Multiplier;
+	
+
+	float leftBorderIdx{};
+	float rightBorderIdx{};
+
+	//Go over every element of table (cached array)
+	for (int i = 0; i < outRowArrPtr->Num(); ++i)
+	{
+		//If we have the exact value in our array, we stop and return the corresponding multiplier
+		if (UKismetMathLibrary::EqualEqual_FloatFloat((*outRowArrPtr)[i]->Value,value))
+		{
+			return (*outRowArrPtr)[i]->Multiplier;
+		}
+
+
+		//Get the left element index 
+		if ((*outRowArrPtr)[i]->Value <= value)
+		{
+			leftBorderIdx = i;
+		}
+
+		//get the right element index
+		if ((*outRowArrPtr)[outRowArrPtr->Num() - 1 - i]->Value >= value)
+		{
+			rightBorderIdx = outRowArrPtr->Num() - 1 - i;
+		}
+	}
+
+	//If we made it so far, the value is between 2 other values
+	//https://www.bbc.co.uk/bitesize/guides/z9387p3/revision/5#:~:text=The%20straight%20line%20through%20two,coordinates%20of%20the%20two%20points.
+	// Formula for in between values y = mx + c
+	float m = ((*outRowArrPtr)[rightBorderIdx]->Multiplier - (*outRowArrPtr)[leftBorderIdx]->Multiplier) / ((*outRowArrPtr)[rightBorderIdx]->Value - (*outRowArrPtr)[leftBorderIdx]->Value);
+	float c = (*outRowArrPtr)[rightBorderIdx]->Multiplier - m * (*outRowArrPtr)[rightBorderIdx]->Value;
+
+	return m * value + c;
+
+}
+```
+
+Great, now we can also read from a *Value Table*. Time to see some results.
+
+![its-finally-over-597a15](https://user-images.githubusercontent.com/88614889/211821018-00dc2e3a-2c16-46a3-9530-2233bb6cdbf4.jpg)
+
+### Putting it all together
