@@ -19,6 +19,7 @@ enum class EValueRule : uint8
 UENUM()
 enum class EStringRule : uint8
 {
+	//Existing string rules
 	StanceRule,
 };
 

@@ -57,7 +57,7 @@ float URuleManager::GetMultiplier(const EValueRule& valueRule, float value)
 	if (!outRowArrPtr)
 		return 1.f;
 
-	//Smallest and biggest indexes
+	//Smallest and biggest indexes (array sorted)
 	int smallest{ 0 };
 	int biggest{ outRowArrPtr->Num() - 1 };
 
@@ -74,6 +74,7 @@ float URuleManager::GetMultiplier(const EValueRule& valueRule, float value)
 	float leftBorderIdx{};
 	float rightBorderIdx{};
 
+	//Go over every element of table (cached array)
 	for (int i = 0; i < outRowArrPtr->Num(); ++i)
 	{
 		//If we have the exact value in our array, we stop and return the corresponding multiplier
@@ -124,9 +125,7 @@ float URuleManager::GetMultiplierFromString(const EStringRule& valueRule, const 
 	{
 		//If the content of the row is valid
 		if (row->isValid)
-		{
 			return row->Multiplier;
-		}
 	}
 
 	//If invalid row then we want this multiplayer to have no effect;

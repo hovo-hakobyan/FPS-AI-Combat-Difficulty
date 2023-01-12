@@ -73,7 +73,6 @@ void AEnemy::BeginPlay()
 
 void AEnemy::Shoot()
 {
-	
 	// try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{

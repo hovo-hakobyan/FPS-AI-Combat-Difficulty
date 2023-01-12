@@ -73,21 +73,14 @@ void AMyAIController::Tick(float DeltaSeconds)
 	if (IsAlert)
 	{
 		//Calculate distance value to plug into GetMultiplier
-		//
-		//
-		//
 		float distanceValue = FVector::Distance(ControlledPawnRef->GetActorLocation(), PlayerCharRef->GetActorLocation());
 
-		//Convert distance to meters
+		//Convert distance to meters (table is defined in meters)
 		distanceValue = FUnitConversion::Convert(distanceValue, EUnit::Centimeters, EUnit::Meters);
 		
-		//Calculate angle value to plug into GetMultiplier
-		//
-		// 
-		// 
+		
 		//Get player velocity vec and Player-AI vec
 		FVector vec1 = PlayerCharRef->GetVelocity();
-		
 		FVector vec2 = ControlledPawnRef->GetActorLocation() - PlayerCharRef->GetActorLocation();
 		
 		//Normalize for correct calculation
@@ -95,11 +88,11 @@ void AMyAIController::Tick(float DeltaSeconds)
 		vec2.Normalize();
 
 		float angle = UKismetMathLibrary::DegAcos(FVector::DotProduct(vec1, vec2));
+
+		//This value should have effect if the player is actually moving
 		angle = angle == 0.f ? 1.0f : angle;
 
 		//Calculate multipliers
-		//
-		//
 		float distanceMultiplier = RuleManager->GetMultiplier(EValueRule::DistanceRule, distanceValue);
 		float stanceMultiplier = RuleManager->GetMultiplierFromString(EStringRule::StanceRule, UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString());
 		float velocityMultiplier = RuleManager->GetMultiplier(EValueRule::VelocityRule, angle);
@@ -109,7 +102,6 @@ void AMyAIController::Tick(float DeltaSeconds)
 
 		//Pass it to controlled pawn
 		ControlledPawnRef->SetFinalDelay(finalDelay);
-		
 	}
 }
 
