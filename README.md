@@ -633,8 +633,126 @@ float URuleManager::GetMultiplier(const EValueRule& valueRule, float value)
 }
 ```
 
-Great, now we can also read from a *Value Table*. Time to see some results.
+Great, now we can also read from a *Value Table*. Time to calculate the final delay for our AI agent.
 
 ![its-finally-over-597a15](https://user-images.githubusercontent.com/88614889/211821018-00dc2e3a-2c16-46a3-9530-2233bb6cdbf4.jpg)
 
-### Putting it all together
+## Putting it all together
+The hardest part of the project is done. Now we need to calculate the values and plug them into our function to get the correct multipliers.
+
+**Stance Rule Value**
+
+Getting the value for our stance rule is simple. Since we have the data stored in our *Player Character*, we can get it using a reference to our player.
+```
+	FString stanceValue = UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString();
+```
+
+**Distance Rule Value**
+
+Just like the name suggests, we need to find the current distance from our player to our AI. We can use [FVector::Distance](https://docs.unrealengine.com/4.26/en-US/API/Runtime/Core/Math/FVector/Distance/).
+
+```
+	//Calculate distance value to plug into GetMultiplier
+	float distanceValue = FVector::Distance(ControlledPawnRef->GetActorLocation(), PlayerCharRef->GetActorLocation());
+
+	//Convert distance to meters (table is defined in meters)
+	distanceValue = FUnitConversion::Convert(distanceValue, EUnit::Centimeters, EUnit::Meters);
+```
+
+**Velocity Rule Value**
+
+For this value, we need the player's velocity vector and the Player-AI vector. Using the [UKismetMathLibrary](https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Kismet/UKismetMathLibrary/) we can calculate the angle difference.
+
+```
+	//Get player velocity vec and Player-AI vec
+	FVector vec1 = PlayerCharRef->GetVelocity();
+	FVector vec2 = ControlledPawnRef->GetActorLocation() - PlayerCharRef->GetActorLocation();
+		
+	//Normalize for correct calculation
+	vec1.Normalize();
+	vec2.Normalize();
+
+	float angle = UKismetMathLibrary::DegAcos(FVector::DotProduct(vec1, vec2));
+
+	//This value should have effect if the player is actually moving
+	angle = angle == 0.f ? 1.0f : angle;
+```
+
+### Final delay calculation
+
+For this calculation we use the functions that we made inside our *RuleManager*.
+
+```
+	//Calculate multipliers
+	float distanceMultiplier = RuleManager->GetMultiplier(EValueRule::DistanceRule, distanceValue);
+	float stanceMultiplier = RuleManager->GetMultiplierFromString(EStringRule::StanceRule, UEnum::GetDisplayValueAsText(PlayerCharRef->GetCharacterStance()).ToString());
+	float velocityMultiplier = RuleManager->GetMultiplier(EValueRule::VelocityRule, angle);
+		
+	//Calculate final delay
+	float finalDelay = baseDelay * distanceMultiplier * stanceMultiplier * velocityMultiplier;
+```
+
+Then, to determine when our AI should hit the player, we can manipulate a boolean based on our timer. 
+
+```
+void AEnemy::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	currentDelay += DeltaTime;
+	
+	if (currentDelay >= finalDelay)
+	{
+		shouldHit = true;
+		TimerWidget->SetHitMissText(true);
+		currentDelay = 0.f;	
+	}
+}
+```
+
+When `shouldHit` is false, we add an offset to the *FRotator* used to spawn the bullet. This way the bullet will miss the player. When `shouldHit` is true, no offset is added and the bullet will fly towards the player.
+
+`const FRotator randomRotation = shouldHit ? FRotator{ 0.f,0.f,0.f } : FRotator{ 0.f,10.f,0.f }; `
+
+**Shoot function**
+
+```
+void AEnemy::Shoot()
+{
+	// try and fire a projectile
+	if (ProjectileClass != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			const FRotator randomRotation = shouldHit ? FRotator{ 0.f,0.f,0.f } : FRotator{ 0.f,10.f,0.f };
+			const FRotator SpawnRotation = GetControlRotation() + randomRotation;
+
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = ((MuzzleLocation != nullptr) ? MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// spawn the projectile at the muzzle
+			World->SpawnActor<AMyProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			
+			//If we hit the last shot, we reset this boolean
+			if (shouldHit)
+			{
+				shouldHit = false;
+			}
+		}
+}	}
+```
+
+## Final Result: Single AI
+
+Our current implementation adds the following to the player experience:
+
+* Safer when crouching
+* Punishing when running towards the AI
+* Forgiving when running away from the AI
+* More challenging combat when closer to the AI
+* Indulgent combat difficulty when far from the AI
+
