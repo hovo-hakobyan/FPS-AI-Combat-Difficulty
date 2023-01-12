@@ -756,3 +756,34 @@ Our current implementation adds the following to the player experience:
 * More challenging combat when closer to the AI
 * Indulgent combat difficulty when far from the AI
 
+![DistanceRulGIF](https://github.com/hovo-hakobyan/FPS-AI-Combat-Difficulty/blob/main/GIF/DistanceRule.gif)
+
+![StanceRuleGIF](https://github.com/hovo-hakobyan/FPS-AI-Combat-Difficulty/blob/main/GIF/StanceRule.gif)
+
+
+## Future
+
+So far our implementation deals perfectly with a single AI. But in games, there are often multiple enemies shooting at the player. 
+
+![FinalGIF](https://github.com/hovo-hakobyan/FPS-AI-Combat-Difficulty/blob/main/GIF/Final.gif)
+
+Implementing a logical token on top of everything we did so far will also solve the problem for multiple AI agents. But that is meant for the future :). Thanks for reading!
+
+
+## Acknowledgements and Webgraphy
+
+[AI for dynamic difficulty adjustment in games](https://www.researchgate.net/publication/228889029_AI_for_dynamic_difficulty_adjustment_in_games)  by Robin Hunicke
+
+[Using AI Accuracy to Balance Difficulty](http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter33_Using_Your_Combat_AI_Accuracy_to_Balance_Difficulty.pdf) by Sergio Ocio Barriales
+
+[UE Programming with c++](https://docs.unrealengine.com/4.27/en-US/ProgrammingAndScripting/ProgrammingWithCPP/)
+
+[Blueprint to C++ Series, Mike Stevanovic](https://youtube.com/playlist?list=PLY9cHlxw3OgjKmwaTEekW3sr_oHY-HwGv)
+
+[UE C++ Fundamentals, Jolly Monster Studios](https://youtube.com/playlist?list=PLCeaAi_Ah78SXMH-qUxjeEz35reRWduKh)
+
+[UE C++ Training Series, Normalish Software](https://youtube.com/playlist?list=PLa8-f-Rrm0Nkmd1RELB8XTRGWwermTkxE)
+
+[UE C++ AI Series, MrCxx](https://youtube.com/playlist?list=PLWUvrI0mg8VLrvq3n2iu45lhCo69uluDK)
+
+[Straight line graphs](https://www.bbc.co.uk/bitesize/guides/z9387p3/revision/5#:~:text=The%20straight%20line%20through%20two,coordinates%20of%20the%20two%20points)
